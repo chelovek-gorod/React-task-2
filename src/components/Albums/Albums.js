@@ -7,10 +7,9 @@ function Albums() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [items, setItems] = useState([]);
   let [album, setAlbum] = useState(0);
+  let [page, setPage] = useState(0);
 
-  const albumsToLoad = 6;
-  const albumsArr = [];
-  for (let i = 1; i <= albumsToLoad; i++) albumsArr.push(i);
+  const albumsOnPage = 6;
 
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/albums")
@@ -18,10 +17,19 @@ function Albums() {
       .then(
         (result) => {
           setIsLoaded(true);
-          let albums = result.filter(e => {
-            if (e.userId <= albumsToLoad) return e;
-          })
+          let resultSize = result.length;
+          let albums = [];
+          let page = [];
+          for (let i = 0; i < resultSize; i++) {
+            page.push(result[i]);
+            if (page.length === albumsOnPage) {
+              albums.push(page);
+              page = [];
+            }
+          }
+          if (page.length) albums.push(page);
           setItems(albums);
+          console.log(albums);
         })
         .catch((error) => {
           setIsLoaded(true);
@@ -29,8 +37,16 @@ function Albums() {
         })
   }, []);
 
-  function getAlbum() {
+  function getAlbum () {
     return items.filter(e => e.userId === album)
+  }
+
+  function getPage () {
+    return items[page]
+  }
+
+  function addPhoto () {
+    console.log('- ADD PHOTO -');
   }
 
   if (error) {
@@ -40,7 +56,11 @@ function Albums() {
   } else if (album === 0){
     return (
         <div className="albums">
-            { albumsArr.map(e => <div className="album-div" key={e} onClick={() => setAlbum(album = e)}><span>Album #{e}</span></div>) }
+            { console.log(getPage()) /*getPage().map(e => <div className="album-div" key={e.id} onClick={() => setAlbum(album = e)}><span>Album #{e}</span></div>) */}
+            <div>
+              <button onClick={() => setPage(page -= 1)}>Previous albums</button>
+              <button onClick={() => setPage(page += 1)}>Next albums</button>
+            </div>
         </div>
     );
   } else {
@@ -48,6 +68,7 @@ function Albums() {
         <div className="photos">
         <div><button onClick={() => setAlbum(album = 0)}>Back to albums</button></div>
         {getAlbum().map(e => <div className="photo" key={e.id}>{e.title}</div>)}
+        <div className="addPhoto" onClick={addPhoto}>Add photo</div>
         </div>
     );
   }

@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 
 import './Albums.css';
 
+// ХУКИ
+// USE SELECTOR (date from store -> map in component)
+// USE DISPATCH (throw actin to reducer)
+
+// !!!! READ HIGH ORDER COMPONENT !!!! (Компонент высшего порядка) // Умные глупые (smart/dump) компоненты
+
 function Albums() {
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [items, setItems] = useState([]);
-  let [album, setAlbum] = useState(0);
+  let [album, setAlbum] = useState(-1);
   let [page, setPage] = useState(0);
 
   const albumsOnPage = 6;
@@ -16,7 +22,6 @@ function Albums() {
       .then(res => res.json())
       .then(
         (result) => {
-          setIsLoaded(true);
           let resultSize = result.length;
           let albums = [];
           let page = [];
@@ -30,6 +35,7 @@ function Albums() {
           if (page.length) albums.push(page);
           setItems(albums);
           console.log(albums);
+          setIsLoaded(true);
         })
         .catch((error) => {
           setIsLoaded(true);
@@ -42,6 +48,8 @@ function Albums() {
   }
 
   function getPage () {
+    console.log('page =', page);
+    console.log(items[page]);
     return items[page]
   }
 
@@ -51,15 +59,21 @@ function Albums() {
 
   if (error) {
     return <div>Error: {error.message}</div>;
-  } else if (!isLoaded) {
+  }
+  if (!isLoaded) {
     return <div>Loading...</div>;
-  } else if (album === 0){
+  }
+  if (album < 0){
     return (
         <div className="albums">
-            { console.log(getPage()) /*getPage().map(e => <div className="album-div" key={e.id} onClick={() => setAlbum(album = e)}><span>Album #{e}</span></div>) */}
+            { getPage().map(element => {
+            return <div className="album-div" key={element.id} onClick={() => setAlbum(element.id)}>
+                <span>Album #{element.id}</span>
+              </div>
+            }) }
             <div>
-              <button onClick={() => setPage(page -= 1)}>Previous albums</button>
-              <button onClick={() => setPage(page += 1)}>Next albums</button>
+              <button onClick={() => setPage(page - 1)}>Previous albums</button>
+              <button onClick={() => setPage(page + 1)}>Next albums</button>
             </div>
         </div>
     );
@@ -67,7 +81,7 @@ function Albums() {
     return (
         <div className="photos">
         <div><button onClick={() => setAlbum(album = 0)}>Back to albums</button></div>
-        {getAlbum().map(e => <div className="photo" key={e.id}>{e.title}</div>)}
+        {getAlbum().map(element => <div className="photo" key={element.id}>{element.title}</div>)}
         <div className="addPhoto" onClick={addPhoto}>Add photo</div>
         </div>
     );
